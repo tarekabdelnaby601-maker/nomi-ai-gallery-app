@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/mobilgaleri/presentation/MainActivity.kt
 package com.example.mobilgaleri.presentation
 
 import android.app.Activity
@@ -21,9 +22,6 @@ import com.example.mobilgaleri.presentation.gallery.GalleryScreen
 import com.example.mobilgaleri.presentation.onboarding.OnboardingActivity
 import com.example.mobilgaleri.util.Permissions
 import com.example.mobilgaleri.util.Prefs
-import androidx.compose.material3.ExperimentalMaterial3Api
-// Material3 (sadece TopBar kullanıyoruz)
-import androidx.compose.material3.*
 
 class MainActivity : ComponentActivity() {
 
@@ -32,6 +30,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Sistem barlarını açık gri yap ve koyu ikon/metin kullan
         window.statusBarColor = Color.parseColor("#F3F4F6")
         window.navigationBarColor = Color.parseColor("#F3F4F6")
         WindowCompat.getInsetsController(window, window.decorView)
@@ -65,7 +65,6 @@ class MainActivity : ComponentActivity() {
         setContent { AppRoot() }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AppRoot() {
         val ctx = this@MainActivity as Activity
@@ -96,18 +95,9 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        // Sade UI: Sadece başlık ve içerik
-        Scaffold(
-            topBar = { TopAppBar(title = { Text("Mobil Galeri") }) }
-        ) { padding ->
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(0.dp)
-            ) {
-                GalleryScreen(presenter)
-            }
+        // UI artık GalleryScreen içinde yönetiliyor (Scaffold/topbar dahil)
+        Box(Modifier.fillMaxSize().padding(0.dp)) {
+            GalleryScreen(presenter)
         }
     }
 }

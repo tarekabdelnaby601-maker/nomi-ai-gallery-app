@@ -73,17 +73,24 @@ class PermissionState(
 @Composable
 fun rememberPermissionStateCompat(permission: String): PermissionState {
     val context = LocalContext.current
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
 
     var granted by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-        )
+        mutableStateOf(ContextCompat.checkSelfPermission(context, permission) ==
+                PackageManager.PERMISSION_GRANTED)
     }
 
-    val launcher: ManagedActivityResultLauncher<String, Boolean> =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            granted = isGranted
-        }
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted -> granted = isGranted }
+
+    // ON_RESUME'da yeniden ölç
+    androidx.lifecycle.compose.LifecycleEventEffect(
+        event = androidx.lifecycle.Lifecycle.Event.ON_RESUME
+    ) {
+        granted = ContextCompat.checkSelfPermission(context, permission) ==
+                PackageManager.PERMISSION_GRANTED
+    }
 
     return remember(granted) {
         PermissionState(
@@ -92,3 +99,5 @@ fun rememberPermissionStateCompat(permission: String): PermissionState {
         )
     }
 }
+
+
