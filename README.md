@@ -97,7 +97,18 @@ The application follows a privacy-focused structure by keeping gallery scanning,
 
 ## Screenshots
 
-Screenshots will be added soon.
+| Splash Screen | Gallery Scan | Person Clusters |
+|---|---|---|
+| <img src="docs/screenshots/splash.png" width="220"/> | <img src="docs/screenshots/gallery-scan.png" width="220"/> | <img src="docs/screenshots/person-clusters.png" width="220"/> |
+
+| Person Detail | Contact Matching | Contact Matching Result |
+|---|---|---|
+| <img src="docs/screenshots/person-detail.png" width="220"/> | <img src="docs/screenshots/contact-matching.png" width="220"/> | <img src="docs/screenshots/contact-matching_result.png" width="220"/> |
+
+| Correction Flow | Correction Selection | Correction Result |
+|---|---|---|
+| <img src="docs/screenshots/correction-flow.png" width="220"/> | <img src="docs/screenshots/correction-flow2.png" width="220"/> | <img src="docs/screenshots/correction-flow_result.png" width="220"/> |
+
 
 ## Academic Context
 
