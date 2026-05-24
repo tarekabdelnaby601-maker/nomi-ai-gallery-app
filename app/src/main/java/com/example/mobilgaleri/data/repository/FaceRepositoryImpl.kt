@@ -27,4 +27,11 @@ class FaceRepositoryImpl(private val faceDao: FaceDao) : FaceRepository {
     override suspend fun getFacesWithPersonIds(personIds: List<Long>): List<FaceEntity> {
         return faceDao.getFacesWithPersonIds(personIds)
     }
+    override suspend fun updateFacePerson(faceId: Long, newPersonId: Long) {
+        faceDao.updateFacePerson(faceId, newPersonId)
+    }
+    override suspend fun getFaceById(faceId: Long): FaceEntity? {
+        return faceDao.getById(faceId)
+    }
+
 }

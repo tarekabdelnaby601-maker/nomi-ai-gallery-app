@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,20 +23,32 @@ import com.example.mobilgaleri.presentation.gallery.GalleryScreen
 import com.example.mobilgaleri.presentation.onboarding.OnboardingActivity
 import com.example.mobilgaleri.util.Permissions
 import com.example.mobilgaleri.util.Prefs
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 
-class MainActivity : ComponentActivity() {
-
+class MainActivity : AppCompatActivity() {
+    private var shouldShowCustomSplash = true
     private var contentSet = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        shouldShowCustomSplash = savedInstanceState == null
         installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         // Sistem barlarını açık gri yap ve koyu ikon/metin kullan
-        window.statusBarColor = Color.parseColor("#F3F4F6")
-        window.navigationBarColor = Color.parseColor("#F3F4F6")
-        WindowCompat.getInsetsController(window, window.decorView)
-            .isAppearanceLightStatusBars = true
+
 
         if (needsOnboarding()) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -62,7 +75,16 @@ class MainActivity : ComponentActivity() {
     private fun setupAppContentIfNeeded() {
         if (contentSet) return
         contentSet = true
-        setContent { AppRoot() }
+
+        setContent {
+            if (shouldShowCustomSplash) {
+                SplashThenApp(
+                    onSplashFinished = { shouldShowCustomSplash = false }
+                )
+            } else {
+                AppRoot()
+            }
+        }
     }
 
     @Composable
@@ -82,6 +104,8 @@ class MainActivity : ComponentActivity() {
         val detector = remember { AppModule.provideFaceDetector(ctx) }
         val embedder = remember { AppModule.provideEmbedder(ctx) }
 
+        val scanCoordinator = remember { AppModule.provideScanCoordinator(ctx) }
+
         val presenter = remember {
             GalleryPresenter(
                 galleryRepository = galleryRepo,
@@ -91,13 +115,65 @@ class MainActivity : ComponentActivity() {
                 contentResolver = cr,
                 detector = detector,
                 embedder = embedder,
-                appContext = ctx
+                appContext = ctx,
+                scanCoordinator = scanCoordinator
             )
         }
 
-        // UI artık GalleryScreen içinde yönetiliyor (Scaffold/topbar dahil)
-        Box(Modifier.fillMaxSize().padding(0.dp)) {
-            GalleryScreen(presenter)
+        // 🔹 BÜTÜN İÇERİK ARTIK NOMİ ARKAPLAN ÜZERİNDE
+        GalleryScreen(presenter)
+    }
+
+    @Composable
+    fun SplashThenApp(onSplashFinished: () -> Unit) {
+        var showSplash = remember { mutableStateOf(true) }
+
+        if (showSplash.value) {
+            CustomSplash(
+                onFinished = {
+                    showSplash.value = false
+                    onSplashFinished()
+                }
+            )
+        } else {
+            AppRoot()
+        }
+    }
+
+    @Composable
+    fun CustomSplash(onFinished: () -> Unit) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(androidx.compose.ui.graphics.Color(0xFF020C1F)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                // Yüz/logon olan resim
+                Image(
+                    painter = painterResource(id = com.example.mobilgaleri.R.drawable.ic_logo_splash),
+                    contentDescription = "NOMİ Logo",
+                    modifier = Modifier.size(200.dp)
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                // SADECE SLOGAN, TIRNAK İÇİNDE VE İTALİK
+                Text(
+                    text = "\"Her yüzün bir ismi var.\"",
+                    color = androidx.compose.ui.graphics.Color.White,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
+        }
+
+        // 1.5 sn sonra ana ekrana geç (15 sn gereksiz uzun, istersen değiştir)
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(150)
+            onFinished()
         }
     }
 }
+

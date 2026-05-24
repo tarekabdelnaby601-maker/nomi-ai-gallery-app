@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MobilGaleri</string>
+    <string name="app_name">Nomi</string>
 
     <!-- Onboarding: Foto/Galeri izni metni -->
     <string name="perm_photos_desc">

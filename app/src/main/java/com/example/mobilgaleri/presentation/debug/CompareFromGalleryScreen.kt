@@ -89,44 +89,83 @@ fun CompareFromGalleryScreen() {
                     try {
                         status = "Landmarks & hizalama…"
                         val lm = MediaPipeFaceLandmarker(ctx)
-                        val p1 = lm.detectFivePoints(bmp1!!)
-                        val p2 = lm.detectFivePoints(bmp2!!)
-                        lm.close()
-                        require(p1 != null && p2 != null) { "Yüz/landmark bulunamadı." }
 
-                        val a1 = alignFace112FiveOrThree(
-                            bmp1!!,
-                            leftEye = p1.leftEye.x to p1.leftEye.y,
-                            rightEye = p1.rightEye.x to p1.rightEye.y,
-                            nose = p1.noseTip.x to p1.noseTip.y,
-                            mouthLeft = p1.mouthLeft.x to p1.mouthLeft.y,
-                            mouthRight = p1.mouthRight.x to p1.mouthRight.y,
-                            margin = 1.10f
-                        )
-                        val a2 = alignFace112FiveOrThree(
-                            bmp2!!,
-                            leftEye = p2.leftEye.x to p2.leftEye.y,
-                            rightEye = p2.rightEye.x to p2.rightEye.y,
-                            nose = p2.noseTip.x to p2.noseTip.y,
-                            mouthLeft = p2.mouthLeft.x to p2.mouthLeft.y,
-                            mouthRight = p2.mouthRight.x to p2.mouthRight.y,
-                            margin = 1.10f
-                        )
+                        // 🔥 YENİ API: detectPoints()
+                        val (five1, three1) = lm.detectPoints(bmp1!!)
+                        val (five2, three2) = lm.detectPoints(bmp2!!)
+                        lm.close()
+
+                        require(five1 != null || three1 != null) { "Foto 1 yüzü bulunamadı." }
+                        require(five2 != null || three2 != null) { "Foto 2 yüzü bulunamadı." }
+
+                        // 🔥 Priority: Five → Three → fallback
+                        val a1 = when {
+                            five1 != null -> alignFace112FiveOrThree(
+                                bmp1!!,
+                                leftEye = five1.leftEye.x to five1.leftEye.y,
+                                rightEye = five1.rightEye.x to five1.rightEye.y,
+                                nose = five1.noseTip.x to five1.noseTip.y,
+                                mouthLeft = five1.mouthLeft.x to five1.mouthLeft.y,
+                                mouthRight = five1.mouthRight.x to five1.mouthRight.y,
+                                margin = 1.10f
+                            ).bitmap
+
+                            three1 != null -> alignFace112FiveOrThree(
+                                bmp1!!,
+                                leftEye = three1.leftEye.x to three1.leftEye.y,
+                                rightEye = three1.rightEye.x to three1.rightEye.y,
+                                nose = three1.noseTip.x to three1.noseTip.y,
+                                mouthLeft = null,
+                                mouthRight = null,
+                                margin = 1.10f
+                            ).bitmap
+
+                            else -> Bitmap.createScaledBitmap(bmp1!!, 112, 112, true)
+                        }
+
+                        val a2 = when {
+                            five2 != null -> alignFace112FiveOrThree(
+                                bmp2!!,
+                                leftEye = five2.leftEye.x to five2.leftEye.y,
+                                rightEye = five2.rightEye.x to five2.rightEye.y,
+                                nose = five2.noseTip.x to five2.noseTip.y,
+                                mouthLeft = five2.mouthLeft.x to five2.mouthLeft.y,
+                                mouthRight = five2.mouthRight.x to five2.mouthRight.y,
+                                margin = 1.10f
+                            ).bitmap
+
+                            three2 != null -> alignFace112FiveOrThree(
+                                bmp2!!,
+                                leftEye = three2.leftEye.x to three2.leftEye.y,
+                                rightEye = three2.rightEye.x to three2.rightEye.y,
+                                nose = three2.noseTip.x to three2.noseTip.y,
+                                mouthLeft = null,
+                                mouthRight = null,
+                                margin = 1.10f
+                            ).bitmap
+
+                            else -> Bitmap.createScaledBitmap(bmp2!!, 112, 112, true)
+                        }
 
                         status = "AdaFace (flip-ortalama)…"
                         val emb = TfliteEmbedder(ctx, "adaface_ir18.tflite")
-                        val e1 = emb.embedAligned112(a1.bitmap)
-                        val e1f = emb.embedAligned112(a1.bitmap.flipX())
-                        val avg1 = averageEmbeddings(e1, e1f)
 
-                        val e2 = emb.embedAligned112(a2.bitmap)
-                        val e2f = emb.embedAligned112(a2.bitmap.flipX())
-                        val avg2 = averageEmbeddings(e2, e2f)
+                        val avg1 = run {
+                            val e = emb.embedAligned112(a1)
+                            val ef = emb.embedAligned112(a1.flipX())
+                            averageEmbeddings(e, ef)
+                        }
+                        val avg2 = run {
+                            val e = emb.embedAligned112(a2)
+                            val ef = emb.embedAligned112(a2.flipX())
+                            averageEmbeddings(e, ef)
+                        }
 
                         val thr = 0.60f
                         score = cosSim(avg1, avg2)
                         verdict = if (score >= thr) "Aynı kişi ✅" else "Farklı kişi ❌"
                         status = "Bitti ✅ (eşik=$thr)"
+
                     } catch (t: Throwable) {
                         status = "Hata: ${t.message}"
                         verdict = "?"
@@ -149,5 +188,7 @@ private fun decodeUriToBitmap(ctx: Context, uri: Uri): Bitmap? {
             @Suppress("DEPRECATION")
             MediaStore.Images.Media.getBitmap(ctx.contentResolver, uri)
         }
-    } catch (e: Exception) { null }
+    } catch (e: Exception) {
+        null
+    }
 }

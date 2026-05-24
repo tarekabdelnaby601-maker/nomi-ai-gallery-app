@@ -1,0 +1,20 @@
+<resources>
+    <color name="primary">#111827</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <color name="header_accent">#54B4FF</color>
+    <color name="button_primary">#1E3A5F</color>
+    <color name="scrollbar">#2A4E78</color>
+
+    <color name="background">#0B1220</color>
+    <color name="surface">#020C1F</color>
+    <color name="surface_variant">#162235</color>
+
+    <color name="text_primary">#F3F4F6</color>
+    <color name="text_secondary">#B8C0CC</color>
+
+    <color name="overlay">#66000000</color>
+    <color name="dialog_background">#FF0F1724</color>
+    <color name="selected_row">#3354B4FF</color>
+    <color name="header_background">#020C1F</color>
+</resources>

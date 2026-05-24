@@ -28,3 +28,6 @@ local.properties
 *.aab
 *.log
 *.tmp
+
+# Archive files
+*.zip

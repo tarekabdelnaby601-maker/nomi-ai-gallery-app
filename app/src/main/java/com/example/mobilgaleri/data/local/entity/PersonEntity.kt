@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "persons")
 data class PersonEntity(
     @PrimaryKey
-    val personId: Long,
+    var personId: Long,           // <-- val → var yap
     var name: String? = null,
     val centroid: FloatArray,
 

@@ -2,7 +2,9 @@
 package com.example.mobilgaleri.domain.model
 
 data class Photo(
-    val id: Long,
+    val id: Long,              // photoOwnerId
     val contentUri: String,
-    val dateTaken: Long?
+    val dateTaken: Long?,
+    val faceId: Long           // yeni eklendi 🔥
 )
+

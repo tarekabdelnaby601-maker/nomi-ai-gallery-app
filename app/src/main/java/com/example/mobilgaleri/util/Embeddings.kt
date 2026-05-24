@@ -28,7 +28,7 @@ fun cosSim(a: FloatArray, b: FloatArray): Float {
 /** e = L2norm(e_orig + e_flip) */
 fun averageEmbeddings(e1: FloatArray, e2: FloatArray): FloatArray {
     require(e1.size == e2.size)
-    val out = FloatArray(e1.size) { i -> e1[i] + e2[i] }
+    val out = FloatArray(e1.size) { i -> 0.5f*(e1[i] + e2[i]) }
     l2norm(out)
     return out
 }

@@ -22,4 +22,9 @@ class PersonRepositoryImpl(private val personDao: PersonDao) : PersonRepository 
     override suspend fun updateContactMatch(personId: Long, contactId: Long, confidence: Float) {
         personDao.updateContactMatch(personId, contactId, confidence)
     }
+    override suspend fun updateContactName(personId: Long, contactName: String) {
+        personDao.updateContactName(personId, contactName)
+    }
+
+
 }

@@ -21,4 +21,8 @@ interface PersonDao {
     // YENİ: Belirli bir kişinin rehber eşleşme bilgilerini güncelleyen sorgu
     @Query("UPDATE persons SET contactId = :contactId, contactMatchConfidence = :confidence WHERE personId = :personId")
     suspend fun updateContactMatch(personId: Long, contactId: Long, confidence: Float)
+
+    @Query("UPDATE persons SET name = :contactName WHERE personId = :personId")
+    suspend fun updateContactName(personId: Long, contactName: String)
+
 }

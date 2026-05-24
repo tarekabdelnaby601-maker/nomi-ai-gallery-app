@@ -8,5 +8,6 @@ interface PersonRepository {
     suspend fun updateContactMatch(personId: Long, contactId: Long, confidence: Float) // <-- BU SATIRI EKLE
     suspend fun getAllPersons(): List<PersonEntity>
     suspend fun deletePersons(persons: List<PersonEntity>)
+    suspend fun updateContactName(personId: Long, contactName: String)
 
 }

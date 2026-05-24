@@ -25,7 +25,10 @@ class GetSavedClustersUseCase(
         val groupedByPerson = allFaces.groupBy { it.personOwnerId }
 
         groupedByPerson.forEach { (personId, faces) ->
-            val photosInCluster = faces.mapNotNull { face -> allPhotosMap[face.photoOwnerId] }.distinct()
+            val photosInCluster = faces.mapNotNull { face ->
+                val base = allPhotosMap[face.photoOwnerId]
+                base?.copy(faceId = face.faceId)   // Photo içine yüzün ID’sini ekliyoruz
+            }.distinct()
             val personEntity = allPersonsMap[personId]
             val personIdInt = personId.toInt()
             clustersMap[personIdInt] = photosInCluster.toMutableList()

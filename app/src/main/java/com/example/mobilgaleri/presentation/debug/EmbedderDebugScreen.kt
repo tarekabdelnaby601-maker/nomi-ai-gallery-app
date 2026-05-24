@@ -1,5 +1,4 @@
 // com/example/mobilgaleri/presentation/debug/EmbedderDebugScreen.kt
-
 package com.example.mobilgaleri.presentation.debug
 
 import android.content.Context
@@ -16,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mobilgaleri.data.face.MediaPipeFaceLandmarker
 import com.example.mobilgaleri.data.face.TfliteEmbedder
-import com.example.mobilgaleri.util.alignFace112Five
 import com.example.mobilgaleri.util.alignFace112FiveOrThree
 import com.example.mobilgaleri.util.averageEmbeddings
 import com.example.mobilgaleri.util.cosSim
@@ -41,83 +39,117 @@ fun EmbedderDebugScreen() {
 
         Button(onClick = {
             scope.launch(Dispatchers.Default) {
+
                 fun say(step: String) { status = step; Log.d(TAG, step) }
 
                 try {
-                    // 0) Assets doğrula
-                    val assets = ctx.assets.list("")?.toList().orEmpty()
-                    Log.d(TAG, "ASSETS = $assets")
-                    require(assets.contains("adaface_ir18.tflite")) { "assets/adaface_ir18.tflite yok" }
-                    require(assets.contains("face_landmarker.task")) { "assets/face_landmarker.task yok" }
-                    require(assets.contains("test_face1.jpg")) { "assets/test_face1.jpg yok" }
-                    require(assets.contains("test_face2.jpg")) { "assets/test_face2.jpg yok" }
+                    // 0) Asset kontrolü
+                    val assets = ctx.assets.list("")!!.toList()
+                    require("adaface_ir18.tflite" in assets)
+                    require("face_landmarker.task" in assets)
+                    require("test_face1.jpg" in assets)
+                    require("test_face2.jpg" in assets)
 
-                    say("Görseller yükleniyor…")
+                    say("Resimler yükleniyor…")
                     val b1 = loadBitmap(ctx, "test_face1.jpg")
                     val b2 = loadBitmap(ctx, "test_face2.jpg")
 
-                    say("Landmarks (5-point)…")
+                    say("Landmark (5/3 otomatik)…")
                     val lm = MediaPipeFaceLandmarker(ctx)
-                    val p1 = lm.detectFivePoints(b1)
-                    val p2 = lm.detectFivePoints(b2)
+                    val (five1, three1) = lm.detectPoints(b1)
+                    val (five2, three2) = lm.detectPoints(b2)
                     lm.close()
-                    require(p1 != null && p2 != null) { "5-nokta bulunamadı; eşiği düşürmeyi deneyin." }
 
-                    say("Hizalama (112×112, margin=1.10)…")
-                    val a1 = alignFace112FiveOrThree(
-                        b1,
-                        leftEye = p1.leftEye.x to p1.leftEye.y,
-                        rightEye = p1.rightEye.x to p1.rightEye.y,
-                        nose = p1.noseTip.x to p1.noseTip.y,
-                        mouthLeft = p1.mouthLeft.x to p1.mouthLeft.y,
-                        mouthRight = p1.mouthRight.x to p1.mouthRight.y,
-                        margin = 1.10f
-                    )
-                    val a2 = alignFace112FiveOrThree(
-                        b2,
-                        leftEye = p2.leftEye.x to p2.leftEye.y,
-                        rightEye = p2.rightEye.x to p2.rightEye.y,
-                        nose = p2.noseTip.x to p2.noseTip.y,
-                        mouthLeft = p2.mouthLeft.x to p2.mouthLeft.y,
-                        mouthRight = p2.mouthRight.x to p2.mouthRight.y,
-                        margin = 1.10f
-                    )
-                    android.util.Log.d("Align", "img1 fivePoint=${a1.usedFivePoint}, img2 fivePoint=${a2.usedFivePoint}")
+                    require(five1 != null || three1 != null) { "test_face1: landmark yok" }
+                    require(five2 != null || three2 != null) { "test_face2: landmark yok" }
 
-                    say("AdaFace yükleniyor…")
+                    say("Hizalama 112×112…")
+
+                    // 🔥 1. foto hizalama
+                    val a1 = when {
+                        five1 != null -> alignFace112FiveOrThree(
+                            b1,
+                            leftEye = five1.leftEye.x to five1.leftEye.y,
+                            rightEye = five1.rightEye.x to five1.rightEye.y,
+                            nose = five1.noseTip.x to five1.noseTip.y,
+                            mouthLeft = five1.mouthLeft.x to five1.mouthLeft.y,
+                            mouthRight = five1.mouthRight.x to five1.mouthRight.y,
+                            margin = 1.10f
+                        ).bitmap
+
+                        three1 != null -> alignFace112FiveOrThree(
+                            b1,
+                            leftEye = three1.leftEye.x to three1.leftEye.y,
+                            rightEye = three1.rightEye.x to three1.rightEye.y,
+                            nose = three1.noseTip.x to three1.noseTip.y,
+                            mouthLeft = null,
+                            mouthRight = null,
+                            margin = 1.10f
+                        ).bitmap
+
+                        else -> Bitmap.createScaledBitmap(b1, 112, 112, true)
+                    }
+
+                    // 🔥 2. foto hizalama
+                    val a2 = when {
+                        five2 != null -> alignFace112FiveOrThree(
+                            b2,
+                            leftEye = five2.leftEye.x to five2.leftEye.y,
+                            rightEye = five2.rightEye.x to five2.rightEye.y,
+                            nose = five2.noseTip.x to five2.noseTip.y,
+                            mouthLeft = five2.mouthLeft.x to five2.mouthLeft.y,
+                            mouthRight = five2.mouthRight.x to five2.mouthRight.y,
+                            margin = 1.10f
+                        ).bitmap
+
+                        three2 != null -> alignFace112FiveOrThree(
+                            b2,
+                            leftEye = three2.leftEye.x to three2.leftEye.y,
+                            rightEye = three2.rightEye.x to three2.rightEye.y,
+                            nose = three2.noseTip.x to three2.noseTip.y,
+                            mouthLeft = null,
+                            mouthRight = null,
+                            margin = 1.10f
+                        ).bitmap
+
+                        else -> Bitmap.createScaledBitmap(b2, 112, 112, true)
+                    }
+
+                    say("AdaFace çalışıyor…")
                     val emb = TfliteEmbedder(ctx, "adaface_ir18.tflite")
-                    Log.d(TAG, "Embedder dim=${emb.embeddingDim()}")
 
-                    say("AdaFace (flip-ortalama)…")
-                    val e1 = emb.embedAligned112(a1.bitmap)
-                    val e1f = emb.embedAligned112(a1.bitmap.flipX())
-                    val e1avg = averageEmbeddings(e1, e1f)
+                    // 🔥 flip-average
+                    val avg1 = averageEmbeddings(
+                        emb.embedAligned112(a1),
+                        emb.embedAligned112(a1.flipX())
+                    )
 
-                    val e2 = emb.embedAligned112(a2.bitmap)
-                    val e2f = emb.embedAligned112(a2.bitmap.flipX())
-                    val e2avg = averageEmbeddings(e2, e2f)
+                    val avg2 = averageEmbeddings(
+                        emb.embedAligned112(a2),
+                        emb.embedAligned112(a2.flipX())
+                    )
 
-                    lastCos = cosSim(e1avg, e2avg)
+                    lastCos = cosSim(avg1, avg2)
                     verdict = if (lastCos >= THRESHOLD) "Aynı kişi ✅" else "Farklı kişi ❌"
-                    say("Bitti ✅")
+
+                    say("Bitti ✓")
+
                 } catch (t: Throwable) {
-                    val msg = "${t::class.simpleName}: ${t.message ?: "(no message)"}"
-                    val trace = android.util.Log.getStackTraceString(t)
-                    Log.e(TAG, "HATA: $msg\n$trace")
-                    status = "Hata: $msg\n$trace"
+                    val msg = t.message ?: "Hata"
+                    status = "Hata: $msg"
                     verdict = "?"
                     lastCos = 0f
+                    Log.e(TAG, "ERR", t)
                 }
             }
         }) { Text("Embed Testi Çalıştır") }
     }
 }
 
-private fun loadBitmap(context: Context, name: String): Bitmap {
-    context.assets.open(name).use { inp ->
+private fun loadBitmap(ctx: Context, name: String): Bitmap {
+    ctx.assets.open(name).use { inp ->
         val bytes = inp.readBytes()
-        return requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size)) {
-            "Decode edilemedi: $name"
-        }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            ?: error("Decode edilemedi: $name")
     }
 }

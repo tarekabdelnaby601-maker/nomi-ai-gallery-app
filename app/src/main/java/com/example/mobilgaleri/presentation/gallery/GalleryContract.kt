@@ -1,6 +1,7 @@
 //com/example/mobilgaleri/presentation/gallery/GalleryContract.kt
 package com.example.mobilgaleri.presentation.gallery
 
+import com.example.mobilgaleri.data.local.entity.PersonEntity
 import com.example.mobilgaleri.domain.model.PersonDetails
 import com.example.mobilgaleri.domain.model.Photo
 
@@ -19,6 +20,8 @@ interface GalleryContract {
         fun hideProgress()
 
         fun showContactsMatchPrompt()
+        fun showSelectPersonDialog(faceId: Long, persons: List<PersonEntity>)
+        fun refreshAfterFaceReassigned()
 
 
         // DEĞİŞİKLİK: Eski fonksiyonlar yerine bu yeni fonksiyon geldi.
@@ -32,8 +35,13 @@ interface GalleryContract {
     interface Presenter {
         fun attach(view: View)
         fun detach()
-        fun loadAndSyncClusters()
+
+        fun loadCachedClusters()
+        fun syncIfNeeded()
+
         fun matchFacesWithContacts()
+        fun onWrongPersonClicked(faceId: Long)
+        fun onPersonSelectedForFace(faceId: Long, newPersonId: Long)
 
     }
 }

@@ -430,20 +430,39 @@ private suspend fun runEval(context: Context, tree: Uri): String = withContext(D
         val roi = Bitmap.createBitmap(bmp, l, t, r - l, b - t)
 
         // 5-nokta landmark → 112×112 hizalama (fallback: basit crop)
-        val five = landmarker.detectFivePoints(roi)
-        val aligned112 = if (five != null) {
-            alignFace112FiveOrThree(
-                src = roi,
-                leftEye    = five.leftEye.x to five.leftEye.y,
-                rightEye   = five.rightEye.x to five.rightEye.y,
-                nose       = five.noseTip.x to five.noseTip.y,
-                mouthLeft  = five.mouthLeft.x to five.mouthLeft.y,
-                mouthRight = five.mouthRight.x to five.mouthRight.y,
-                margin     = 1.10f
-            ).bitmap
-        } else {
-            Bitmap.createScaledBitmap(roi, 112, 112, true)
+        val (five, three) = landmarker.detectPoints(roi)
+
+        val aligned112 = when {
+            five != null -> {
+                alignFace112FiveOrThree(
+                    src = roi,
+                    leftEye    = five.leftEye.x    to five.leftEye.y,
+                    rightEye   = five.rightEye.x   to five.rightEye.y,
+                    nose       = five.noseTip.x    to five.noseTip.y,
+                    mouthLeft  = five.mouthLeft.x  to five.mouthLeft.y,
+                    mouthRight = five.mouthRight.x to five.mouthRight.y,
+                    margin     = 1.10f
+                ).bitmap
+            }
+
+            three != null -> {
+                alignFace112FiveOrThree(
+                    src = roi,
+                    leftEye    = three.leftEye.x  to three.leftEye.y,
+                    rightEye   = three.rightEye.x to three.rightEye.y,
+                    nose       = three.noseTip.x  to three.noseTip.y,
+                    mouthLeft  = null,
+                    mouthRight = null,
+                    margin     = 1.10f
+                ).bitmap
+            }
+
+            else -> {
+                // landmark yok → basic crop
+                Bitmap.createScaledBitmap(roi, 112, 112, true)
+            }
         }
+
 
         // AdaFace + flip-ortalama
         val e  = embedder.embedAligned112(aligned112)

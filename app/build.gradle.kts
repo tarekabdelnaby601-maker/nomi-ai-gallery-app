@@ -39,6 +39,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    packagingOptions {
+        pickFirst("lib/**/libtensorflowlite_jni.so")
+        pickFirst("lib/**/libtensorflowlite_flex_jni.so")
+        pickFirst("lib/**/libtensorflowlite_gpu_jni.so")
+    }
+
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -78,6 +85,8 @@ dependencies {
     // TensorFlow Lite (embedding için placeholder)
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")   // ✅ FileUtil burada
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
@@ -87,4 +96,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("com.google.mediapipe:tasks-vision:latest.release")
+
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.19.0")
 }
